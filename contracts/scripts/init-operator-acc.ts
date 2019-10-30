@@ -1,6 +1,6 @@
 import 'ethers'
 import {ethers} from "ethers";
-import {Wallet} from "../../js/franklin_lib/src/wallet";
+import {Wallet} from "../../src/js/franklin_lib/src/wallet";
 
 async function main() {
     const operatorAccountPrivateKey = process.env.OPERATOR_PRIVATE_KEY;

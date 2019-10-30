@@ -1,6 +1,6 @@
 
 import {BigNumber} from "ethers/utils";
-import {packAmount, packFee} from "../../js/franklin_lib/src/utils";
+import {packAmount, packFee} from "../../src/js/franklin_lib/src/utils";
 import {BN} from "bn.js";
 
 export function createDepositPublicData(tokenId, hexAmount: string, franklinAddress: string): Buffer {

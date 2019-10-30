@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SRC=`dirname $0`/../js/explorer
+SRC=`dirname $0`/../src/js/explorer
 DST=$CLIENT_GITHUB_DIR
 
 . bin/.gen_js_config

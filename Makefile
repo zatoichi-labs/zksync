@@ -16,9 +16,9 @@ init:
 	@bin/init
 
 yarn:
-	@cd js/franklin_lib && yarn
-	@cd js/client && yarn
-	@cd js/explorer && yarn
+	@cd src/js/franklin_lib && yarn
+	@cd src/js/client && yarn
+	@cd src/js/explorer && yarn
 	@cd contracts && yarn
 
 
@@ -69,20 +69,20 @@ genesis: confirm_action db-reset
 # Frontend clients
 
 dist-config:
-	bin/.gen_js_config > js/client/src/env-config.js
-	bin/.gen_js_config > js/explorer/src/env-config.js
+	bin/.gen_js_config > src/js/client/src/env-config.js
+	bin/.gen_js_config > src/js/explorer/src/env-config.js
 
 client:
-	@cd js/client && yarn serve
+	@cd src/js/client && yarn serve
 
 explorer: dist-config
-	@cd js/explorer && yarn dev
+	@cd src/js/explorer && yarn dev
 
 dist-client:
-	@cd js/client && yarn build
+	@cd src/js/client && yarn build
 
 dist-explorer: dist-config
-	@cd js/explorer && yarn build
+	@cd src/js/explorer && yarn build
 
 image-nginx: dist-client dist-explorer
 	@docker build -t "${NGINX_DOCKER_IMAGE}" -f ./docker/nginx/Dockerfile .
@@ -154,13 +154,13 @@ price:
 # Loadtest
 
 run-loadtest: confirm_action
-	@cd js/franklin_lib && yarn loadtest
+	@cd src/js/franklin_lib && yarn loadtest
 
 prepare-loadtest: confirm_action
-	@node js/loadtest/loadtest.js prepare
+	@node src/js/loadtest/loadtest.js prepare
 
 rescue: confirm_action
-	@node js/loadtest/rescue.js
+	@node src/js/loadtest/rescue.js
 
 deposit: confirm_action
 	@node contracts/scripts/deposit.js

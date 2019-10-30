@@ -12,9 +12,9 @@ steps:
     restore: true
     mount:
       - ./contracts/node_modules
-      - ./js/client/node_modules
-      - ./js/explorer/node_modules
-      - ./js/franklin_lib/node_modules
+      - ./src/js/client/node_modules
+      - ./src/js/explorer/node_modules
+      - ./src/js/franklin_lib/node_modules
       - ./target/cargo
 
 - name: init
@@ -92,9 +92,9 @@ steps:
     rebuild: true
     mount:
       - ./contracts/node_modules
-      - ./js/client/node_modules
-      - ./js/explorer/node_modules
-      - ./js/franklin_lib/node_modules
+      - ./src/js/client/node_modules
+      - ./src/js/explorer/node_modules
+      - ./src/js/franklin_lib/node_modules
       - ./target/cargo
   depends_on:
      - init

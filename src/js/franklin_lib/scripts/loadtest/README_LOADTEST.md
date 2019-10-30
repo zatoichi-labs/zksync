@@ -1,7 +1,7 @@
 # the testing tool
 
 ### Usage: 
-To launch one of the tests, from `franklin/js/franklin_lib` run `f yarn ts-node scripts/loadtest/{test}.ts`.
+To launch one of the tests, from `franklin/src/js/franklin_lib` run `f yarn ts-node scripts/loadtest/{test}.ts`.
 Or copy one of files in `/tests` and change the operations added.
 
 ### Adding operations:

@@ -64,6 +64,7 @@ impl<'a, E: JubjubEngine> Circuit<E> for FranklinCircuit<'a, E> {
                 full_amount: zero_circuit_element.clone(),
                 fee_packed: zero_circuit_element.clone(),
                 fee: zero_circuit_element.clone(),
+                swift_exit_fee_packed: zero_circuit_element.clone(),
                 amount_unpacked: zero_circuit_element.clone(),
                 first_sig_msg: zero_circuit_element.clone(),
                 second_sig_msg: zero_circuit_element.clone(),
@@ -564,6 +565,11 @@ impl<'a, E: JubjubEngine> FranklinCircuit<'a, E> {
                 &prev.op_data.fee_packed,
             )?);
             is_op_data_correct_flags.push(CircuitElement::equals(
+                cs.namespace(|| "is swift_exit_fee_packed equal to previous"),
+                &op_data.swift_exit_fee_packed,
+                &prev.op_data.swift_exit_fee_packed,
+            )?);
+            is_op_data_correct_flags.push(CircuitElement::equals(
                 cs.namespace(|| "is ethereum_key equal to previous"),
                 &op_data.ethereum_key,
                 &prev.op_data.ethereum_key,
@@ -746,10 +752,12 @@ impl<'a, E: JubjubEngine> FranklinCircuit<'a, E> {
         pubdata_bits.extend(cur.token.get_bits_be()); //TOKEN_BIT_WIDTH=16
         pubdata_bits.extend(op_data.full_amount.get_bits_be()); //AMOUNT_PACKED=24
         pubdata_bits.extend(op_data.fee_packed.get_bits_be()); //FEE_PACKED=8
+        pubdata_bits.extend(op_data.swift_exit_fee_packed.get_bits_be()); //FEE_PACKED=8
+        pubdata_bits.extend(cur.account.pub_key_hash.get_bits_be()); //PUB_KEY_HASH=160
         pubdata_bits.extend(op_data.ethereum_key.get_bits_be()); //ETHEREUM_KEY=160
                                                                  //        assert_eq!(pubdata_bits.len(), 30 * 8);
         pubdata_bits.resize(
-            6 * franklin_constants::CHUNK_BIT_WIDTH,
+            9 * franklin_constants::CHUNK_BIT_WIDTH,
             Boolean::constant(false),
         );
 
@@ -763,13 +771,14 @@ impl<'a, E: JubjubEngine> FranklinCircuit<'a, E> {
         serialized_tx_bits.extend(cur.token.get_bits_be());
         serialized_tx_bits.extend(op_data.full_amount.get_bits_be());
         serialized_tx_bits.extend(op_data.fee_packed.get_bits_be());
+        serialized_tx_bits.extend(op_data.swift_exit_fee_packed.get_bits_be());
         serialized_tx_bits.extend(cur.account.nonce.get_bits_be());
 
         let pubdata_chunk = select_pubdata_chunk(
             cs.namespace(|| "select_pubdata_chunk"),
             &pubdata_bits,
             &chunk_data.chunk_number,
-            6,
+            9,
         )?;
 
         //TODO: this flag is used too often, we better compute it above
@@ -1924,10 +1933,17 @@ fn generate_maxchunk_polynomial<E: JubjubEngine>() -> Vec<E::Fr> {
         let y = E::Fr::from_str("1").unwrap();
         points.push((x, y));
     }
-    for i in &[1, 3] {
+    for i in &[1] {
         //deposit, withdraw
         let x = E::Fr::from_str(&i.to_string()).unwrap();
         let y = E::Fr::from_str("5").unwrap();
+        points.push((x, y));
+    }
+
+    for i in &[3] {
+        //deposit, withdraw
+        let x = E::Fr::from_str(&i.to_string()).unwrap();
+        let y = E::Fr::from_str("8").unwrap();
         points.push((x, y));
     }
 

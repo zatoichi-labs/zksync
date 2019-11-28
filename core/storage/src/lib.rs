@@ -17,6 +17,7 @@ use bigdecimal::BigDecimal;
 use chrono::prelude::*;
 use diesel::dsl::*;
 use failure::{bail, Fail};
+use models::node::swift_exits::SwiftExit;
 use models::node::block::{Block, ExecutedOperations, ExecutedPriorityOp, ExecutedTx};
 use models::node::{
     apply_updates, reverse_updates, tx::FranklinTx, Account, AccountId, AccountMap, AccountUpdate,
@@ -572,6 +573,55 @@ impl NewFranklinOp {
             block_num: i64::from(block),
             operation: serde_json::to_value(franklin_op.clone()).unwrap(),
             fee_account: i64::from(fee_account),
+        }
+    }
+}
+
+#[derive(Debug, Insertable, Queryable, QueryableByName)]
+#[table_name = "swift_exits"]
+struct StorageSwiftExit {
+    pub block_number: i64,
+    pub operation_id: i64,
+    pub account_id: i64,
+    pub token_id: i32,
+    pub token_amount: BigDecimal,
+    pub fee: BigDecimal,
+    pub swift_exit_fee: BigDecimal,
+    pub owner: String,
+    pub recipient: String,
+    pub supply_amount: BigDecimal,
+}
+
+impl StorageSwiftExit {
+    pub fn prepare_stored_swift_exit(swift_exit: &SwiftExit) -> Self {
+        Self {
+            block_number: i64::from(swift_exit.block_number),
+            operation_id: i64::from(swift_exit.operation_id),
+            account_id: i64::from(swift_exit.account_id),
+            token_id: i32::from(swift_exit.token_id),
+            token_amount: swift_exit.token_amount,
+            fee: swift_exit.fee,
+            swift_exit_fee: swift_exit.swift_exit_fee,
+            owner: swift_exit.owner.to_string(),
+            recipient: swift_exit.recipient.to_string(),
+            supply_amount: swift_exit.supply_amount,
+        }
+    }
+
+    pub fn into_swift_exit(self) -> SwiftExit {
+        SwiftExit {
+            block_number: i64::from(swift_exit.block_number),
+            operation_id: i64::from(swift_exit.operation_id),
+            account_id: i64::from(swift_exit.account_id),
+            token_id: i32::from(swift_exit.token_id),
+            token_amount: swift_exit.token_amount,
+            fee: swift_exit.fee,
+            swift_exit_fee: swift_exit.swift_exit_fee,
+            owner: swift_exit.owner.to_string(),
+            recipient: swift_exit.recipient.to_string(),
+            supply_amount: swift_exit.supply_amount,
+            aggr_signature: None,
+            signers_bitmask: 0
         }
     }
 }
@@ -2041,6 +2091,38 @@ impl StorageProcessor {
             .into_iter()
             .map(|stored_tx| serde_json::from_value(stored_tx.0.tx).unwrap())
             .collect())
+    }
+
+    pub fn save_swift_exit(
+        &self,
+        swift_exit: &SwiftExit,
+    ) -> QueryResult<()> {
+        let storage_swift_exit = StorageSwiftExit::prepare_stored_swift_exit(swift_exit);
+        insert_into(swift_exits::table)
+            .values(&storage_swift_exit})
+            .execute(self.conn())?;
+        Ok(())
+    }
+
+    pub fn load_swift_exit(block_number: i64, operation_id: i64) -> QueryResult<SwiftExit> {
+        use crate::schema::swift_exits::dsl;
+        let stored: StorageSwiftExit = dsl::swift_exits
+            .filter(
+                dsl::block_number.eq(i64::from(block_number)) &&
+                dsl::operation_id.eq(i64::from(operation_id))
+            )
+            .get_result(self.conn())?;
+        Ok(stored.into_swift_exit())
+    }
+
+    pub fn delete_swift_exit(block_number: i64, operation_id: i64) -> QueryResult<()> {
+        diesel::delete(
+            swift_exits::table
+            .filter(swift_exits::block_number.eq(i64::from(block_number))),
+            .filter(swift_exits::operation_id.eq(i64::from(operation_id))),
+        )
+        .execute(self.conn())?;
+        Ok(())
     }
 }
 
